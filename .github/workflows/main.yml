@@ -7,26 +7,54 @@ on:
 jobs:
   test-build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [16.x]
-
     steps:
-      # Step 1: Checkout repository
       - uses: actions/checkout@v2
 
-      # Step 2: Setup Node.js dan cache npm dengan v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Testing Build pre-Deploy
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-          #cache: "npm"
+          cache: "npm"
 
-      # Step 3: Install dependencies
-      - name: Install dependencies
-        run: npm install
+      - run: npm i
+      - run: npm run build
 
-      # Step 4: Build project
-      - name: Build project
-        run: npm run build
+  deploy:
+    needs: test-build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - name: Build app on VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/ssh-praktikan23
+            echo "Cek folder project"
+            if [ ! -d "${HOME}/senpro/515523/modul02/senpro-github-action/" ]; then
+              echo "Repository belum di-clone. Cloning..."
+              mkdir -p ~/senpro/515523/modul02
+              cd ~/senpro/515523/modul02
+              git clone https://github.com/fuykaa/senpro-github-action.git
+              cd ~/senpro/515523/modul02/senpro-github-action
+              echo "Install Package dan Build Project"
+              npm install
+              npm run build
+            else
+              echo "Repository sudah ada. Building..."
+              cd ~/senpro/515523/modul02/senpro-github-action
+              git restore .
+              git pull origin main
+              echo "Install Package dan Build Project"
+              npm install
+              npm run build
+            fi
