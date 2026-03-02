@@ -7,27 +7,30 @@ on:
 jobs:
   test-build:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         node-version: [16.x]
+
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Testing Build pre-Deploy
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
 
-      - run: npm i
+      - run: npm ci
       - run: npm run build
 
   deploy:
     needs: test-build
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         node-version: [16.x]
+
     steps:
       - name: Build app on VM
         uses: appleboy/ssh-action@master
@@ -40,7 +43,7 @@ jobs:
             eval "$(ssh-agent -s)"
             ssh-add ~/.ssh/ssh-praktikan23
             echo "Cek folder project"
-            if [ ! -d "${HOME}/senpro/515523/modul02/senpro-github-action/" ]; then
+            if [ ! -d "$HOME/senpro/515523/modul02/senpro-github-action/" ]; then
               echo "Repository belum di-clone. Cloning..."
               mkdir -p ~/senpro/515523/modul02
               cd ~/senpro/515523/modul02
