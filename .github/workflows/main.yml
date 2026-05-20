@@ -38,7 +38,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          command_timeout: 20m    # <-- 1. TAMBAHKAN INI: Mengubah timeout bawaan ke 20 menit
+        
           script: |
             eval "$(ssh-agent -s)"
             ssh-add ~/.ssh/ssh-praktikan4
